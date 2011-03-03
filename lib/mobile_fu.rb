@@ -1,5 +1,12 @@
 module MobileFu
-  class DeviceInfo < Struct.new(:operating_system, :version); end
+  class DeviceInfo
+    attr_reader :operating_system, :version
+
+    def initialize(os, ver)
+      @operating_system = os
+      @version = ver
+    end
+  end
 
   def self.included(base)
     base.extend(ClassMethods)
