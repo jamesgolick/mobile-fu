@@ -1,5 +1,7 @@
 module ActionController
   module MobileFu
+    class DeviceInfo < Struct.new(:operating_system, :version); end
+
     # These are various strings that can be found in mobile devices.  Please feel free
     # to add on to this list.
     MOBILE_USER_AGENTS =  'palm|blackberry|nokia|phone|midp|mobi|symbian|chtml|ericsson|minimo|' +
@@ -93,10 +95,24 @@ module ActionController
       def is_device?(type)
         request.user_agent.to_s.downcase.include?(type.to_s.downcase)
       end
+
+      def mobile_device_info
+        @mobile_device_info ||= extract_device_info
+      end
+
+      protected
+      def extract_device_info
+        ua = request.user_agent.to_s
+        if match = ua.match(/Android ([\d\.]+)/)
+          DeviceInfo.new(:android, match[1].to_f)
+        elsif match = ua.match(/iPhone.*Version\/([\d\.]+)/)
+          DeviceInfo.new(:iphone, match[1].to_f)
+        end
+      end
     end
-    
   end
-  
 end
 
-ActionController::Base.send(:include, ActionController::MobileFu)
+if defined?(ActionController::Base)
+  ActionController::Base.send(:include, ActionController::MobileFu)
+end
