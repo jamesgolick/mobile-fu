@@ -57,3 +57,18 @@ describe "Blackberry user agents" do
     @controller.mobile_device_info.version.should == 6.0
   end
 end
+
+describe "WebOS user agents" do
+  before do
+    @controller = FakeController.new
+    @controller.request = Request.new("Mozilla/5.0 (webOS/1.1; U; en-US) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/1.0 Safari/525.27.1 Pre/1.0")
+  end
+
+  it "correctly extracts the operating system" do
+    @controller.mobile_device_info.operating_system.should == :webos
+  end
+
+  it "correctly extracts the OS version" do
+    @controller.mobile_device_info.version.should == 1.1
+  end
+end
