@@ -107,6 +107,8 @@ module ActionController
           DeviceInfo.new(:android, match[1].to_f)
         elsif match = ua.match(/iPhone.*Version\/([\d\.]+)/)
           DeviceInfo.new(:iphone, match[1].to_f)
+        elsif match = ua.match(/BlackBerry.*AppleWebKit.*Version\/(\d\.\d)/)
+          DeviceInfo.new(:blackberry, match[1].to_f)
         end
       end
     end
