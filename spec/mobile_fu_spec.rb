@@ -72,3 +72,18 @@ describe "WebOS user agents" do
     @controller.mobile_device_info.version.should == 1.1
   end
 end
+
+describe "Unknown user agents" do
+  before do
+    @controller = FakeController.new
+    @controller.request = Request.new("Mozilla/5.0 (fuckOS/1.1; U; en-US) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/1.0 Safari/525.27.1 Pre/1.0")
+  end
+
+  it "sets an OS of unknown" do
+    @controller.mobile_device_info.operating_system.should == :unknown
+  end
+
+  it "sets a version of nil" do
+    @controller.mobile_device_info.version.should be_nil
+  end
+end

@@ -111,6 +111,8 @@ module ActionController
           DeviceInfo.new(:blackberry, match[1].to_f)
         elsif match = ua.match(/webOS\/([\d\.]+)/)
           DeviceInfo.new(:webos, match[1].to_f)
+        else
+          DeviceInfo.new(:unknown, nil)
         end
       end
     end
