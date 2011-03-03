@@ -3,7 +3,7 @@ require File.expand_path("../spec_helper", __FILE__)
 class FakeController
   attr_accessor :request
 
-  include ActionController::MobileFu
+  include MobileFu
 
   def self.before_filter(*args); end
   def self.helper_method(*args); end
@@ -85,5 +85,28 @@ describe "Unknown user agents" do
 
   it "sets a version of nil" do
     @controller.mobile_device_info.version.should be_nil
+  end
+end
+
+describe "Supported devices" do
+  before do
+    FakeController.supported_devices.clear
+    FakeController.supported_devices[:iphone] = {:min => 4.0, :max => 10.0}
+    @controller = FakeController.new
+  end
+
+  it "when the OS matches, but it's below the minimum" do
+    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3")
+    @controller.should_not be_is_mobile_device
+  end
+
+  it "when the OS matches, but it's above the maximum" do
+    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/11.0 Mobile/1A543a Safari/419.3")
+    @controller.should_not be_is_mobile_device
+  end
+
+  it "when the OS matches, but it's in the accepted range" do
+    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/4.0 Mobile/1A543a Safari/419.3")
+    @controller.should be_is_mobile_device
   end
 end

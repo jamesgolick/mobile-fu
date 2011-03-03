@@ -1,115 +1,120 @@
-module ActionController
-  module MobileFu
-    class DeviceInfo < Struct.new(:operating_system, :version); end
+module MobileFu
+  class DeviceInfo < Struct.new(:operating_system, :version); end
 
-    def self.included(base)
-      base.extend(ClassMethods)
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+  
+  module ClassMethods
+    def supported_devices
+      @supported_devices ||= {}
     end
     
-    module ClassMethods
+    # Add this to one of your controllers to use MobileFu.  
+    #
+    #    class ApplicationController < ActionController::Base 
+    #      has_mobile_fu
+    #    end
+    #
+    # You can also force mobile mode by passing in 'true'
+    #
+    #    class ApplicationController < ActionController::Base 
+    #      has_mobile_fu(true)
+    #    end
       
-      # Add this to one of your controllers to use MobileFu.  
-      #
-      #    class ApplicationController < ActionController::Base 
-      #      has_mobile_fu
-      #    end
-      #
-      # You can also force mobile mode by passing in 'true'
-      #
-      #    class ApplicationController < ActionController::Base 
-      #      has_mobile_fu(true)
-      #    end
-        
-      def has_mobile_fu(test_mode = false)
-        include ActionController::MobileFu::InstanceMethods
+    def has_mobile_fu(test_mode = false)
+      include MobileFu::InstanceMethods
 
-        if test_mode 
-          before_filter :force_mobile_format
-        else
-          before_filter :set_mobile_format
-        end
-
-        helper_method :is_mobile_device?
-        helper_method :in_mobile_view?
-        helper_method :is_device?
-      end
-      
-      def is_mobile_device?
-        @@is_mobile_device
+      if test_mode 
+        before_filter :force_mobile_format
+      else
+        before_filter :set_mobile_format
       end
 
-      def in_mobile_view?
-        @@in_mobile_view
-      end
-
-      def is_device?(type)
-        @@is_device
-      end
+      helper_method :is_mobile_device?
+      helper_method :in_mobile_view?
+      helper_method :is_device?
     end
     
-    module InstanceMethods
-      
-      # Forces the request format to be :mobile
-      
-      def force_mobile_format
-        request.format = :mobile
+    def is_mobile_device?
+      @@is_mobile_device
+    end
+
+    def in_mobile_view?
+      @@in_mobile_view
+    end
+
+    def is_device?(type)
+      @@is_device
+    end
+  end
+  
+  module InstanceMethods
+    
+    # Forces the request format to be :mobile
+    
+    def force_mobile_format
+      request.format = :mobile
+      session[:mobile_view] = true if session[:mobile_view].nil?
+    end
+    
+    # Determines the request format based on whether the device is mobile or if
+    # the user has opted to use either the 'Standard' view or 'Mobile' view.
+    
+    def set_mobile_format
+      if is_mobile_device? && !request.xhr?
+        request.format = session[:mobile_view] == false ? :html : :mobile
         session[:mobile_view] = true if session[:mobile_view].nil?
       end
-      
-      # Determines the request format based on whether the device is mobile or if
-      # the user has opted to use either the 'Standard' view or 'Mobile' view.
-      
-      def set_mobile_format
-        if is_mobile_device? && !request.xhr?
-          request.format = session[:mobile_view] == false ? :html : :mobile
-          session[:mobile_view] = true if session[:mobile_view].nil?
-        end
+    end
+    
+    # Returns either true or false depending on whether or not the format of the
+    # request is either :mobile or not.
+    
+    def in_mobile_view?
+      request.format.to_sym == :mobile
+    end
+    
+    # Returns either true or false depending on whether or not the user agent of
+    # the device making the request is matched to a device in our regex.
+    
+    def is_mobile_device?
+      self.class.supported_devices.any? do |os, options|
+        mobile_device_info.operating_system == os &&
+          mobile_device_info.version >= options[:min] &&
+          mobile_device_info.version <= options[:max]
       end
-      
-      # Returns either true or false depending on whether or not the format of the
-      # request is either :mobile or not.
-      
-      def in_mobile_view?
-        request.format.to_sym == :mobile
-      end
-      
-      # Returns either true or false depending on whether or not the user agent of
-      # the device making the request is matched to a device in our regex.
-      
-      def is_mobile_device?
-        request.user_agent.to_s.downcase =~ Regexp.new(ActionController::MobileFu::MOBILE_USER_AGENTS)
-      end
+    end
 
-      # Can check for a specific user agent
-      # e.g., is_device?('iphone') or is_device?('mobileexplorer')
-      
-      def is_device?(type)
-        request.user_agent.to_s.downcase.include?(type.to_s.downcase)
-      end
+    # Can check for a specific user agent
+    # e.g., is_device?('iphone') or is_device?('mobileexplorer')
+    
+    def is_device?(type)
+      request.user_agent.to_s.downcase.include?(type.to_s.downcase)
+    end
 
-      def mobile_device_info
-        @mobile_device_info ||= extract_device_info
-      end
+    def mobile_device_info
+      @mobile_device_info ||= extract_device_info
+    end
 
-      protected
-      def extract_device_info
-        ua = request.user_agent.to_s
-        if match = ua.match(/Android ([\d\.]+)/)
-          DeviceInfo.new(:android, match[1].to_f)
-        elsif match = ua.match(/iPhone.*Version\/([\d\.]+)/)
-          DeviceInfo.new(:iphone, match[1].to_f)
-        elsif match = ua.match(/BlackBerry.*AppleWebKit.*Version\/(\d\.\d)/)
-          DeviceInfo.new(:blackberry, match[1].to_f)
-        elsif match = ua.match(/webOS\/([\d\.]+)/)
-          DeviceInfo.new(:webos, match[1].to_f)
-        else
-          DeviceInfo.new(:unknown, nil)
-        end
+    protected
+    def extract_device_info
+      ua = request.user_agent.to_s
+      if match = ua.match(/Android ([\d\.]+)/)
+        DeviceInfo.new(:android, match[1].to_f)
+      elsif match = ua.match(/iPhone.*Version\/([\d\.]+)/)
+        DeviceInfo.new(:iphone, match[1].to_f)
+      elsif match = ua.match(/BlackBerry.*AppleWebKit.*Version\/(\d\.\d)/)
+        DeviceInfo.new(:blackberry, match[1].to_f)
+      elsif match = ua.match(/webOS\/([\d\.]+)/)
+        DeviceInfo.new(:webos, match[1].to_f)
+      else
+        DeviceInfo.new(:unknown, nil)
       end
     end
   end
 end
 
 if defined?(ActionController::Base)
-  ActionController::Base.send(:include, ActionController::MobileFu)
+  ActionController::Base.send(:include, MobileFu)
 end
