@@ -10,13 +10,11 @@ module MobileFu
 
   def self.included(base)
     base.extend(ClassMethods)
+    base.send(:class_inheritable_accessor, :supported_devices)
+    base.supported_devices = {}
   end
   
   module ClassMethods
-    def supported_devices
-      @supported_devices ||= {}
-    end
-    
     # Add this to one of your controllers to use MobileFu.  
     #
     #    class ApplicationController < ActionController::Base 
