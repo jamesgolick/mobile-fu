@@ -79,10 +79,9 @@ module MobileFu
     # the device making the request is matched to a device in our regex.
     
     def is_mobile_device?
-      self.class.supported_devices.any? do |os, options|
+      self.class.supported_devices.any? do |os, version_range|
         mobile_device_info.operating_system == os &&
-          mobile_device_info.version >= options[:min] &&
-          mobile_device_info.version <= options[:max]
+          version_range.member?(mobile_device_info.version)
       end
     end
 

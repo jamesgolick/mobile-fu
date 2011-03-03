@@ -91,7 +91,7 @@ end
 describe "Supported devices" do
   before do
     FakeController.supported_devices.clear
-    FakeController.supported_devices[:iphone] = {:min => 4.0, :max => 10.0}
+    FakeController.supported_devices[:iphone] = (4.0..10.0)
     @controller = FakeController.new
   end
 
