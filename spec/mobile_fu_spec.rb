@@ -31,7 +31,7 @@ end
 describe "iPhone user agents" do
   before do
     @controller = FakeController.new
-    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3")
+    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; iPhone OS 4_2_1 like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3")
   end
 
   it "correctly extracts the operating system" do
@@ -39,7 +39,7 @@ describe "iPhone user agents" do
   end
 
   it "correctly extracts the OS version" do
-    @controller.mobile_device_info.version.should == 3.0
+    @controller.mobile_device_info.version.should == 4.2
   end
 end
 
@@ -106,7 +106,7 @@ describe "Supported devices" do
   end
 
   it "when the OS matches, but it's in the accepted range" do
-    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/4.0 Mobile/1A543a Safari/419.3")
+    @controller.request = Request.new("Mozilla/5.0 (iPhone; U; iPhone OS 4_2_1 X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/4.0 Mobile/1A543a Safari/419.3")
     @controller.should be_is_mobile_device
   end
 end

@@ -106,8 +106,8 @@ module MobileFu
       ua = request.user_agent.to_s
       if match = ua.match(/Android ([\d\.]+)/)
         DeviceInfo.new(:android, match[1].to_f)
-      elsif match = ua.match(/iPhone.*Version\/([\d\.]+)/)
-        DeviceInfo.new(:iphone, match[1].to_f)
+      elsif match = ua.match(/iPhone OS (\d_\d+)/)
+        DeviceInfo.new(:iphone, match[1].gsub(/_/, ".").to_f)
       elsif match = ua.match(/BlackBerry.*AppleWebKit.*Version\/(\d\.\d)/)
         DeviceInfo.new(:blackberry, match[1].to_f)
       elsif match = ua.match(/webOS\/([\d\.]+)/)
